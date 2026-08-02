@@ -14,13 +14,16 @@ const connectDB = async () => {
     }
 };
 
-const paytmSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, minLength: 3, maxLength: 15 },
-    password: { type: String, required: true, minLength: 8, maxLength: 18 },
-    firstName: { type: String, required: true, maxLength: 50 },
-    secondName: { type: String, required: true, maxLength: 50 },
+const paytmSchema = mongoose.Schema({
+    username: { type: String, required: true, unique: true, minLength: 3, maxLength: 18 },
+    password: { type: String, required: true, minLength: 8 },
+    firstName: { type: String, required: true },
+    secondName: { type: String, required: true },
 });
 
 // Is model ko export kar rahe hain taaki data push kar sakein
-module.exports = mongoose.model('User', paytmSchema);
-module.exports = connectDB;
+const User = mongoose.model('User', paytmSchema);
+module.exports = {
+    User
+}
+// module.exports = connectDB;
