@@ -1,14 +1,15 @@
-// server.js
+require('dotenv').config(); // Ye line .env file se data utha kar process.env mein daalti hai
 const express = require('express')
-const mainRouter = require('./routes/index.js')
 const cors = require('cors')
 app.use(express.json())
 app.use(cors())
-// connectDB();
+const mainRouter = require('./routes/index.js')
 
 const app = express();
 // 2. Data Push (Save) Karne Ka Route
-app.post('/api/v1', mainRouter)
+app.post('/api/v1', mainRouter, (req, res) => {
+
+})
 
 // global catch 
 let errorCount = 0;
@@ -18,7 +19,6 @@ app.use((err, req, res, next) => {
     res.status(500).send("Sorry ! Invalid Cridentals");
 })
 
-const PORT = 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
