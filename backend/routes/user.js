@@ -3,7 +3,7 @@ const z = require('zod')
 const bcrypt = require('bcrypt')
 const { User, Account } = require('../db')
 const jwt = require('jsonwebtoken')
-const { authMiddleware } = require('./middleware')
+const authMiddleware = require('./middleware')
 const router = express.Router()
 
 // Step.1 - Define Zod Security
@@ -126,7 +126,7 @@ const updateBody = z.object({
 })
 
 router.post('/', authMiddleware, async (req, res) => {
-    const { success } = updateBody.safeParse(req, body)
+    const { success } = updateBody.safeParse(req.body)
     if (!success) {
         res.status(411).json({
             message: "Error while updating information"
