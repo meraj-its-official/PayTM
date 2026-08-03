@@ -9,8 +9,9 @@ const router = express.Router()
 // Step.1 - Define Zod Security
 const signupSchema = z.object({
     username: z.string().min(3, { message: "Usename must be at least 3 characters long" })
-        .max(18, { message: "Usename must be less than 18 characters long" }).toLowerCase(),
+        .max(12, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
+        .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
         .regex(/[0-7]/, { message: "Password must contain at least one number" })
@@ -25,7 +26,7 @@ router.post('/signup', async (req, res) => {
     const { success } = signupSchema.safeParse(req.body)
     if (!success) {
         return res.status(411).json({
-            message: 'Username already taken/ Incorrect inputs'
+            message: 'Incorrect inputs'
         })
     }
     // Step.3 - Find Username in Database 
@@ -72,8 +73,9 @@ router.post('/signup', async (req, res) => {
 
 const signinSchema = z.object({
     username: z.string().min(3, { message: "Usename must be at least 3 characters long" })
-        .max(18, { message: "Usename must be less than 18 characters long" }).toLowerCase(),
+        .max(12, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
+        .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
         .regex(/[0-7]/, { message: "Password must contain at least one number" })
@@ -117,6 +119,7 @@ router.post('/signin', async (req, res) => {
 
 const updateBody = z.object({
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
+        .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
         .regex(/[0-7]/, { message: "Password must contain at least one number" })
