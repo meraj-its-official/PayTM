@@ -7,9 +7,7 @@ const mainRouter = require('./routes/index.js')
 
 const app = express();
 // 2. Data Push (Save) Karne Ka Route
-app.post('/api/v1', mainRouter, (req, res) => {
-
-})
+app.post('/api/v1', mainRouter)
 
 // global catch 
 let errorCount = 0;
