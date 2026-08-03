@@ -3,7 +3,9 @@ const mongoose = require('mongoose');
 const { maxLength, minLength } = require('zod');
 
 // Yahan process.env.MONGO_URI (ya jo bhi variable naam tumne .env mein rakha hai) use hoga
-mongoose.connect(process.env.MONGO_URI);
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ Database Connected Successfully!"))
+    .catch((err) => console.log("❌ Database Error: ", err));
 
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, minLength: 3, maxLength: 18 },
