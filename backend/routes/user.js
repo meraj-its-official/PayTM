@@ -66,7 +66,7 @@ router.post('/signup', async (req, res) => {
     // (Yahan compare check ki zaroorat nahi hai, user successfully ban chuka hai)
     const token = jwt.sign({
         userId
-    }, process.env.JWT_SECRET);
+    }, process.env.JWT_SECRET, { expiresIn: '300s' });
 
     // Step 7 - Send Response
     return res.status(200).json({
@@ -100,25 +100,26 @@ router.post('/signin', async (req, res) => {
     const existingUser = await User.findOne({
         username: body.username,
     })
-    if (!existingUser._id) {
+    if (!existingUser) {
         return res.status(411).json({
-            message: 'User not found or Invalid credentials'
+            message: 'User does not exist'
         })
     }
 
-    const isPasswordValid = await bcrypt.compare(body.existingUser, existingUser.password)
+    const isPasswordValid = await bcrypt.compare(body.password, existingUser.password)
 
-    if (isPasswordValid) {
-        const token = jwt.sign({
-            userId: existingUser._id
-        }, process.env.JWT_SECRET)
-        return res.status(200).json({
-            message: "Account Logedin Successfully",
-            token: token
+    if (!isPasswordValid) {
+        return res.status(411).json({
+            message: "Error while LoggingIn / Wrong Password"
         })
     }
-    res.status(411).json({
-        message: "Error while LoggingIn / Wrong Password"
+    const token = jwt.sign({
+        userId: existingUser._id
+    }, process.env.JWT_SECRET, { expiresIn: '300s' })
+
+    return res.status(200).json({
+        message: "Account Logedin Successfully",
+        token: token
     })
 })
 
@@ -151,23 +152,27 @@ router.get('/bulk', async (req, res) => {
 
     const users = await User.find({
         $or: [{
+            username: {
+                "$regex": filter
+            }
+        }, {
             firstname: {
                 "$regex": filter
             }
         }, {
             lastname: {
-                "$regrex": filter
+                "$regex": filter
             }
         }]
     })
 
     res.json({
-        user: users.map({
+        user: users.map(user => ({
             username: user.username,
             firstname: user.firstname,
             lastname: user.lastname,
             _id: user._id
-        })
+        }))
     })
 })
 
