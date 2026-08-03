@@ -47,14 +47,19 @@ router.post('/signup', async (req, res) => {
     // Step 5 - Create New User in Database (with Hashed Password)
     const dbUser = await User.create({
         username: body.username,
-        password: hashedPassword // Plain password ki jagah hashed wala save kar rahe hain
+        password: hashedPassword, // Plain password ki jagah hashed wala save kar rahe hain
+        firstname: body.firstname,
+        lastname: body.lastname
     });
     const userId = dbUser._id
+    function getRandomAmount(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
     // Random Amount give to the New Account Created
     await Account.create({
         userId,
-        balance: 1 + Math.random() * 10000
+        balance: getRandomAmount(1, 1000)
     })
 
     // Step 6 - Generate JWT Token
@@ -159,7 +164,7 @@ router.get('/bulk', async (req, res) => {
     res.json({
         user: users.map({
             username: user.username,
-            firstname: user.firstName,
+            firstname: user.firstname,
             lastname: user.lastname,
             _id: user._id
         })
