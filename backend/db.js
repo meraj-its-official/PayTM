@@ -8,10 +8,10 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((err) => console.log("❌ Database Error: ", err));
 
 const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, minLength: 3, maxLength: 18 },
+    username: { type: String, required: true, unique: true, minLength: 3, maxLength: 12 },
     password: { type: String, required: true, minLength: 8, maxLength: 20 },
-    firstname: { type: String, required: true, minLength: 20 },
-    lastname: { type: String, required: true, minLength: 20 },
+    firstname: { type: String, required: true, maxLength: 30 },
+    lastname: { type: String, required: true, maxLength: 30 },
 });
 
 const accountSchema = new mongoose.Schema({

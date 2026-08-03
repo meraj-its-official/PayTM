@@ -14,10 +14,10 @@ const signupSchema = z.object({
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-        .regex(/[0-7]/, { message: "Password must contain at least one number" })
-        .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
-    firstname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
-    lastname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+        .regex(/[0-9]/, { message: "Password must contain at least one number" })
+        .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
+    firstname: z.string().max(30, { message: "Password must be less than 30 characters long" }),
+    lastname: z.string().max(30, { message: "Password must be less than 30 characters long" }),
 })
 
 // Step.2 - Define body Structure for Post '/signup' Route
@@ -78,8 +78,8 @@ const signinSchema = z.object({
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-        .regex(/[0-7]/, { message: "Password must contain at least one number" })
-        .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
+        .regex(/[0-9]/, { message: "Password must contain at least one number" })
+        .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
 })
 
 
@@ -122,10 +122,10 @@ const updateBody = z.object({
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-        .regex(/[0-7]/, { message: "Password must contain at least one number" })
-        .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
-    firstname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
-    lastname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+        .regex(/[0-9]/, { message: "Password must contain at least one number" })
+        .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
+    firstname: z.string().max(30, { message: "Password must be less than 30 characters long" }),
+    lastname: z.string().max(30, { message: "Password must be less than 30 characters long" }),
 })
 
 router.post('/', authMiddleware, async (req, res) => {
