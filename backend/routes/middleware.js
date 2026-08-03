@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 const authMiddleware = (res, req, next) => {
     const authHeader = req.headers.authorization;
@@ -24,6 +23,4 @@ const authMiddleware = (res, req, next) => {
     };
 }
 
-module.exports = {
-    authMiddleware
-}
+module.exports = authMiddleware
