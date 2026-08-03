@@ -15,10 +15,7 @@ app.post('/api/v1', mainRouter, (req, res) => {
 let errorCount = 0;
 app.use((err, req, res, next) => {
     errorCount++;
-    console.log("Error: " + errorCount);
     res.status(500).send("Sorry ! Invalid Cridentals");
 })
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => { });

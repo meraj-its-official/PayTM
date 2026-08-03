@@ -1,8 +1,9 @@
 const express = require('express')
 const z = require('zod')
 const bcrypt = require('bcrypt')
-const { User } = require('../db')
+const { User, Account } = require('../db')
 const jwt = require('jsonwebtoken')
+const { authMiddleware } = require('./middleware')
 const router = express.Router()
 
 // Step.1 - Define Zod Security
@@ -14,8 +15,8 @@ const signupSchema = z.object({
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
         .regex(/[0-7]/, { message: "Password must contain at least one number" })
         .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
-    firstName: z.string(),
-    secondName: z.string(),
+    firstName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+    secondName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
 })
 
 // Step.2 - Define body Structure for Post '/signup' Route
@@ -47,11 +48,18 @@ router.post('/signup', async (req, res) => {
         username: body.username,
         password: hashedPassword // Plain password ki jagah hashed wala save kar rahe hain
     });
+    const userId = dbUser._id
+
+    // Random Amount give to the New Account Created
+    await Account.create({
+        userId,
+        balance: 1 + Math.random() * 10000
+    })
 
     // Step 6 - Generate JWT Token
     // (Yahan compare check ki zaroorat nahi hai, user successfully ban chuka hai)
     const token = jwt.sign({
-        userId: dbUser._id
+        userId
     }, process.env.JWT_SECRET);
 
     // Step 7 - Send Response
@@ -104,6 +112,54 @@ router.post('/signin', async (req, res) => {
     }
     res.status(411).json({
         message: "Error while LoggingIn / Wrong Password"
+    })
+})
+
+const updateBody = z.object({
+    password: z.string().min(8, { message: "Password must be at least 8 characters long" })
+        .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+        .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+        .regex(/[0-7]/, { message: "Password must contain at least one number" })
+        .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
+    firstName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+    secondName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+})
+
+router.post('/', authMiddleware, async (req, res) => {
+    const { success } = updateBody.safeParse(req, body)
+    if (!success) {
+        res.status(411).json({
+            message: "Error while updating information"
+        })
+    }
+    await User.updateOne({ _id: req.userId }, req.body)
+    res.json({
+        message: 'Updated Successfully'
+    })
+})
+
+router.get('/bulk', async (req, res) => {
+    const filter = req.query.filter || "";
+
+    const users = await User.find({
+        $or: [{
+            firstname: {
+                "$regex": filter
+            }
+        }, {
+            lastname: {
+                "$regrex": filter
+            }
+        }]
+    })
+
+    res.json({
+        user: users.map({
+            username: user.username,
+            firstname: user.firstName,
+            secondname: user.secondName,
+            _id: user._id
+        })
     })
 })
 
