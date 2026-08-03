@@ -16,7 +16,7 @@ const signupSchema = z.object({
         .regex(/[0-7]/, { message: "Password must contain at least one number" })
         .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
     firstName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
-    secondName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+    lastname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
 })
 
 // Step.2 - Define body Structure for Post '/signup' Route
@@ -122,7 +122,7 @@ const updateBody = z.object({
         .regex(/[0-7]/, { message: "Password must contain at least one number" })
         .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
     firstName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
-    secondName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+    lastname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
 })
 
 router.post('/', authMiddleware, async (req, res) => {
@@ -157,7 +157,7 @@ router.get('/bulk', async (req, res) => {
         user: users.map({
             username: user.username,
             firstname: user.firstName,
-            secondname: user.secondName,
+            lastname: user.lastname,
             _id: user._id
         })
     })

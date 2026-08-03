@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, minLength: 3, maxLength: 18 },
     password: { type: String, required: true, minLength: 8 },
     firstName: { type: String, required: true },
-    secondName: { type: String, required: true },
+    lastname: { type: String, required: true },
 });
 
 const accountSchema = new mongoose.Schema({
