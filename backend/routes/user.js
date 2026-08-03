@@ -16,7 +16,7 @@ const signupSchema = z.object({
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
         .regex(/[0-7]/, { message: "Password must contain at least one number" })
         .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
-    firstName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+    firstname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
     lastname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
 })
 
@@ -124,7 +124,7 @@ const updateBody = z.object({
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
         .regex(/[0-7]/, { message: "Password must contain at least one number" })
         .regex(/[^a-zA-Z0-7]/, { message: "Password must contain at least one special character" }),
-    firstName: z.string().min(20, { message: "Password must be at least 8 characters long" }),
+    firstname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
     lastname: z.string().min(20, { message: "Password must be at least 8 characters long" }),
 })
 

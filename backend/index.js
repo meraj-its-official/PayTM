@@ -11,12 +11,6 @@ app.use(cors())
 // 2. Data Push (Save) Karne Ka Route
 app.use('/api/v1', mainRouter)
 
-// global catch 
-let errorCount = 0;
-app.use((err, req, res, next) => {
-    errorCount++;
-    res.status(500).send("Sorry ! Invalid Cridentals");
-})
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
