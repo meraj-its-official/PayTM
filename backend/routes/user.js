@@ -48,6 +48,7 @@ router.post('/signup', async (req, res) => {
     // Step 5 - Create New User in Database (with Hashed Password)
     const dbUser = await User.create({
         username: body.username,
+        email: body.email,
         password: hashedPassword, // Plain password ki jagah hashed wala save kar rahe hain
         firstname: body.firstname,
         lastname: body.lastname
@@ -172,6 +173,7 @@ router.get('/bulk', async (req, res) => {
     res.json({
         user: users.map(user => ({
             username: user.username,
+            email: user.email,
             firstname: user.firstname,
             lastname: user.lastname,
             _id: user._id
