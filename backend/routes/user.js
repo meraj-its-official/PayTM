@@ -8,6 +8,7 @@ const router = express.Router()
 
 // Step.1 - Define Zod Security
 const signupSchema = z.object({
+    email: z.string().email().toLowerCase(),
     username: z.string().min(3, { message: "Usename must be at least 3 characters long" })
         .max(12, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
@@ -66,7 +67,7 @@ router.post('/signup', async (req, res) => {
     // (Yahan compare check ki zaroorat nahi hai, user successfully ban chuka hai)
     const token = jwt.sign({
         userId
-    }, process.env.JWT_SECRET, { expiresIn: '300s' });
+    }, process.env.JWT_SECRET, { expiresIn: '900s' });
 
     // Step 7 - Send Response
     return res.status(200).json({
@@ -77,6 +78,7 @@ router.post('/signup', async (req, res) => {
 
 
 const signinSchema = z.object({
+    email: z.string().email().toLowerCase(),
     username: z.string().min(3, { message: "Usename must be at least 3 characters long" })
         .max(12, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
@@ -115,7 +117,7 @@ router.post('/signin', async (req, res) => {
     }
     const token = jwt.sign({
         userId: existingUser._id
-    }, process.env.JWT_SECRET, { expiresIn: '300s' })
+    }, process.env.JWT_SECRET, { expiresIn: '900s' })
 
     return res.status(200).json({
         message: "Account Logedin Successfully",
@@ -124,6 +126,7 @@ router.post('/signin', async (req, res) => {
 })
 
 const updateBody = z.object({
+    email: z.string().email().toLowerCase(),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
@@ -152,7 +155,7 @@ router.get('/bulk', async (req, res) => {
 
     const users = await User.find({
         $or: [{
-            username: {
+            email: {
                 "$regex": filter
             }
         }, {
