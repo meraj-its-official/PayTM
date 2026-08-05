@@ -17,8 +17,8 @@ const signupSchema = z.object({
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
         .regex(/[0-9]/, { message: "Password must contain at least one number" })
         .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
-    firstname: z.string().max(30, { message: "Password must be less than 30 characters long" }),
-    lastname: z.string().max(30, { message: "Password must be less than 30 characters long" }),
+    firstname: z.string().max(30, { message: "Firstname must be less than 30 characters long" }),
+    lastname: z.string().max(30, { message: "Lastname must be less than 30 characters long" }),
 })
 
 // Step.2 - Define body Structure for Post '/signup' Route
@@ -134,8 +134,8 @@ const updateBody = z.object({
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
         .regex(/[0-9]/, { message: "Password must contain at least one number" })
         .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
-    firstname: z.string().max(30, { message: "Password must be less than 30 characters long" }),
-    lastname: z.string().max(30, { message: "Password must be less than 30 characters long" }),
+    firstname: z.string().max(30, { message: "Firstname must be less than 30 characters long" }),
+    lastname: z.string().max(30, { message: "Lastname must be less than 30 characters long" }),
 })
 
 router.post('/', authMiddleware, async (req, res) => {
