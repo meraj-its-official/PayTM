@@ -1,6 +1,6 @@
 // db.js
 const mongoose = require('mongoose');
-const { maxLength, minLength, lowercase, email } = require('zod');
+const { maxLength, minLength, lowercase, email, trim } = require('zod');
 
 // Yahan process.env.MONGO_URI (ya jo bhi variable naam tumne .env mein rakha hai) use hoga
 mongoose.connect(process.env.MONGO_URI)
@@ -8,11 +8,11 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((err) => console.log("❌ Database Error: ", err));
 
 const userSchema = new mongoose.Schema({
-    email: { type: String, required: true, unique: true, email: true, lowercase: true },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     username: { type: String, required: true, unique: true, minLength: 3, maxLength: 12, lowercase: true, trim: true, },
-    password: { type: String, required: true },
-    firstname: { type: String, required: true, maxLength: 30 },
-    lastname: { type: String, required: true, maxLength: 30 },
+    password: { type: String, required: true, trim: true },
+    firstname: { type: String, required: true, maxLength: 30, trim: true },
+    lastname: { type: String, required: true, maxLength: 30, trim: true },
 });
 
 const accountSchema = new mongoose.Schema({

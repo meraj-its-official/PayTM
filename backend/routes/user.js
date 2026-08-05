@@ -79,9 +79,11 @@ router.post('/signup', async (req, res) => {
 
 
 const signinSchema = z.object({
-    email: z.string().email().toLowerCase(),
-    username: z.string().min(3, { message: "Usename must be at least 3 characters long" })
-        .max(12, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
+    username: z.union([
+        z.string().min(3, { message: "Usename must be at least 3 characters long" })
+            .max(12, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
+        z.string().email().toLowerCase(),
+    ]),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
@@ -101,7 +103,10 @@ router.post('/signin', async (req, res) => {
     }
     // Step.3 - Find Username in Database 
     const existingUser = await User.findOne({
-        username: body.username,
+        $or: [
+            { username: body.username }, // Agar username se match ho jaye
+            { email: body.username }     // Ya phir email se match ho jaye
+        ]
     })
     if (!existingUser) {
         return res.status(411).json({
