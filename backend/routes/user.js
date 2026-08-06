@@ -8,16 +8,12 @@ const router = express.Router()
 
 // Step.1 - Define Zod Security
 const signupSchema = z.object({
-    email: z.string({
-        required_error: "E-mail is required",
-    }).trim({ message: `space '_' is not allowed` }).email("Invalid email format (e.g., example@gmail.com).").toLowerCase({ message: 'E-mail must be into lowercase' }),
-    username: z.string({
-        required_error: "Username is required",
-        invalid_type_error: "Username must be a text"
-    }).trim({ message: `space '_' is not allowed` }).min(3, { message: "Usename must be at least 3 characters long" })
-        .max(20, { message: "Usename must be less than 20 characters long" }).toLowerCase({ message: 'Username must be into lowercase' })
-        .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores allowed."),
-    password: z.string().trim({ message: `space '_' is not allowed` }).min(8, { message: "Password must be at least 8 characters long" })
+    email: z.string({ required_error: "E-mail is required" }).trim().email("Invalid email format (e.g., example@gmail.com).").toLowerCase(),
+    username: z.string({ required_error: "Username is required" }).trim().min(3, { message: "Usename must be at least 3 characters long" })
+        .max(20, { message: "Usename must be less than 20 characters long" })
+        .regex(/^[a-z0-9_]+$/, { message: "Username can only contain lowercase, numbers, and underscores." }),
+    password: z.string({ required_error: "Password is required" }).trim()
+        .min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
@@ -86,7 +82,7 @@ router.post('/signup', async (req, res) => {
 
 
 const signinSchema = z.object({
-    username: z.string().trim({ message: `space '_' is not allowed` }).toLowerCase().superRefine((val, ctx) => {
+    username: z.string().trim().superRefine((val, ctx) => {
         // 1. Agar input mein '@' hai -> Strict EMAIL Validation
         if (val.includes('@')) {
             const isEmail = z.string().email().safeParse(val);
@@ -112,15 +108,18 @@ const signinSchema = z.object({
                 });
             }
             // Regex: Username mein sirf alphabets, numbers, aur underscores (_) allowed hain
-            else if (!/^[a-zA-Z0-9_]+$/.test(val)) {
+            else if (!/^[a-z0-9_]+$/.test(val)) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: "Username can only contain letters, numbers, and underscores.",
+                    message: "Username can only contain lowercase, numbers, and underscores.",
                 });
             }
         }
     }),
-    password: z.string().trim({ message: `space '_' is not allowed` }).min(8, { message: "Password must be at least 8 characters long" })
+
+    password: z.string({
+        required_error: "Username or E-mail is required",
+    }).trim().min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
@@ -169,10 +168,11 @@ router.post('/signin', async (req, res) => {
 })
 
 const updateBody = z.object({
-    email: z.string({
-        required_error: "Email is required"
-    }).trim({ message: `space '_' is not allowed` }).email({ message: "Please enter a valid email address (e.g., name@gmail.com)." }).toLowerCase({ message: 'E-mail must be into lowercase' }),
-    password: z.string().trim({ message: `space '_' is not allowed` }).min(8, { message: "Password must be at least 8 characters long" })
+    email: z.string({ required_error: "Email is required" }).trim()
+        .email({ message: "Please enter a valid email address (e.g., name@gmail.com)." })
+        .toLowerCase(),
+    password: z.string({ required_error: "E-mail is required" }).trim()
+        .min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
@@ -231,11 +231,12 @@ const forgetSchema = z.object({
         username: z.union([
             z.string({
                 required_error: "Username or E-mail is required",
-            }).min(3, { message: "Usename must be at least 3 characters long" }).trim({ message: `space '_' is not allowed` })
-                .max(20, { message: "Usename must be less than 20 characters long" }).toLowerCase({ message: 'Username must be into lowercase' }),
+            }).min(3, { message: "Usename must be at least 3 characters long" }).trim()
+                .max(20, { message: "Usename must be less than 20 characters long" })
+                .regex(/^[a-z0-9_]+$/, { message: "Username can only contain lowercase, numbers, and underscores." }),
             z.string({
                 required_error: "Username or E-mail is required",
-            }).trim({ message: `space '_' is not allowed` }).email({ message: "Invalid email format." }).toLowerCase({ message: 'E-mail must be into lowercase' }),
+            }).trim().email({ message: "Invalid email format." }).toLowerCase(),
         ], {
             // Agar dono mein se kuch bhi match nahi hua, toh yeh main message aayega
             errorMap: () => ({ message: "Please enter a valid Username or Email." })
@@ -249,7 +250,7 @@ const forgetSchema = z.object({
         newPassword: z.string({
             required_error: "New password must be diffrent",       // Agar field khali chhod di
             invalid_type_error: "Invalid password please fill the correct password" // Agar number bhej diya
-        }).trim({ message: `space '_' is not allowed` }).min(8, { message: "Password must be at least 8 characters long" })
+        }).trim().min(8, { message: "Password must be at least 8 characters long" })
             .max(20, { message: "Password must be less than 20 characters long" })
             .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
             .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
