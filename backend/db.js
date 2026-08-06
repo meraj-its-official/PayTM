@@ -9,7 +9,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-    username: { type: String, required: true, unique: true, minLength: 3, maxLength: 12, lowercase: true, trim: true, },
+    username: { type: String, required: true, unique: true, minLength: 3, maxLength: 20, lowercase: true, trim: true, },
     password: { type: String, required: true, trim: true },
     firstname: { type: String, required: true, maxLength: 30, trim: true },
     lastname: { type: String, required: true, maxLength: 30, trim: true },

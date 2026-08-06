@@ -10,7 +10,7 @@ const router = express.Router()
 const signupSchema = z.object({
     email: z.string().email().toLowerCase(),
     username: z.string().min(3, { message: "Usename must be at least 3 characters long" })
-        .max(12, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
+        .max(20, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
@@ -81,7 +81,7 @@ router.post('/signup', async (req, res) => {
 const signinSchema = z.object({
     username: z.union([
         z.string().min(3, { message: "Usename must be at least 3 characters long" })
-            .max(12, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
+            .max(20, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
         z.string().email().toLowerCase(),
     ]),
     password: z.string().min(8, { message: "Password must be at least 8 characters long" })
@@ -143,7 +143,7 @@ const updateBody = z.object({
     lastname: z.string().max(30, { message: "Lastname must be less than 30 characters long" }),
 })
 
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/update', authMiddleware, async (req, res) => {
     const { success } = updateBody.safeParse(req.body)
     if (!success) {
         res.status(411).json({
@@ -185,5 +185,74 @@ router.get('/bulk', async (req, res) => {
         }))
     })
 })
+
+const forgetSchema = z.object({
+    params: z.object({
+        username: z.union([
+            z.string().min(3, { message: "Usename must be at least 3 characters long" })
+                .max(20, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
+            z.string().email().toLowerCase(),
+        ])
+    }),
+    body: z.object({
+        oldPassword: z.string(),
+        newPassword: z.string().min(8, { message: "Password must be at least 8 characters long" })
+            .max(20, { message: "Password must be less than 20 characters long" })
+            .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+            .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+            .regex(/[0-9]/, { message: "Password must contain at least one number" })
+            .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" })
+    })
+})
+
+router.put('/forget/:username', async (req, res) => {
+    const validation = forgetSchema.safeParse({
+        params: req.params,
+        body: req.body
+    })
+    if (!validation.success) {
+        return res.status(400).json({
+            message: "Invalid inputs",
+            errors: validation.error.flatten().fieldErrors
+        });
+    }
+    const { username } = validation.data.params;
+    const { oldPassword, newPassword } = validation.data.body;
+
+    const existingUser = await User.findOne({
+        $or: [
+            { username: username }, // Agar username se match ho jaye
+            { email: username }     // Ya phir email se match ho jaye
+        ]
+    })
+    if (!existingUser) {
+        return res.status(404).json({
+            message: 'User does not exist'
+        })
+    }
+
+    const isPasswordMatch = await bcrypt.compare(oldPassword, existingUser.password)
+    if (!isPasswordMatch) {
+        return res.status(401).json({
+            message: 'New password must be different from the old password'
+        })
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    existingUser.password = hashedPassword
+
+    await existingUser.save()
+
+    const token = jwt.sign({
+        userId: existingUser._id
+    }, process.env.JWT_SECRET)
+
+    return res.status(200).json({
+        message: "Password updated successfully",
+        token: token
+    })
+})
+
 
 module.exports = router
