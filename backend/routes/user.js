@@ -8,10 +8,16 @@ const router = express.Router()
 
 // Step.1 - Define Zod Security
 const signupSchema = z.object({
-    email: z.string().email().toLowerCase(),
-    username: z.string().min(3, { message: "Usename must be at least 3 characters long" })
-        .max(20, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
-    password: z.string().min(8, { message: "Password must be at least 8 characters long" })
+    email: z.string({
+        required_error: "E-mail is required",
+    }).trim({ message: `space '_' is not allowed` }).email("Invalid email format (e.g., example@gmail.com).").toLowerCase({ message: 'E-mail must be into lowercase' }),
+    username: z.string({
+        required_error: "Username is required",
+        invalid_type_error: "Username must be a text"
+    }).trim({ message: `space '_' is not allowed` }).min(3, { message: "Usename must be at least 3 characters long" })
+        .max(20, { message: "Usename must be less than 20 characters long" }).toLowerCase({ message: 'Username must be into lowercase' })
+        .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores allowed."),
+    password: z.string().trim({ message: `space '_' is not allowed` }).min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
@@ -24,10 +30,11 @@ const signupSchema = z.object({
 // Step.2 - Define body Structure for Post '/signup' Route
 router.post('/signup', async (req, res) => {
     const body = req.body;
-    const { success } = signupSchema.safeParse(req.body)
+    const { success, error } = signupSchema.safeParse(req.body)
     if (!success) {
         return res.status(411).json({
-            message: 'Incorrect inputs'
+            message: 'Incorrect inputs',
+            errors: error.flatten().fieldErrors
         })
     }
     // Step.3 - Find Username in Database 
@@ -79,12 +86,41 @@ router.post('/signup', async (req, res) => {
 
 
 const signinSchema = z.object({
-    username: z.union([
-        z.string().min(3, { message: "Usename must be at least 3 characters long" })
-            .max(20, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
-        z.string().email().toLowerCase(),
-    ]),
-    password: z.string().min(8, { message: "Password must be at least 8 characters long" })
+    username: z.string().trim({ message: `space '_' is not allowed` }).toLowerCase().superRefine((val, ctx) => {
+        // 1. Agar input mein '@' hai -> Strict EMAIL Validation
+        if (val.includes('@')) {
+            const isEmail = z.string().email().safeParse(val);
+            if (!isEmail.success) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Invalid email format (e.g., example@gmail.com).",
+                });
+            }
+        }
+        // 2. Agar '@' nahi hai -> Strict USERNAME Validation
+        else {
+            if (val.length < 3) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Username must be at least 3 characters long.",
+                });
+            }
+            else if (val.length > 20) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Username must be less than 20 characters long.",
+                });
+            }
+            // Regex: Username mein sirf alphabets, numbers, aur underscores (_) allowed hain
+            else if (!/^[a-zA-Z0-9_]+$/.test(val)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Username can only contain letters, numbers, and underscores.",
+                });
+            }
+        }
+    }),
+    password: z.string().trim({ message: `space '_' is not allowed` }).min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
@@ -95,10 +131,11 @@ const signinSchema = z.object({
 
 router.post('/signin', async (req, res) => {
     const body = req.body;
-    const { success } = signinSchema.safeParse(req.body)
+    const { success, error } = signinSchema.safeParse(req.body)
     if (!success) {
         return res.status(411).json({
-            message: 'Username/Password Invalid'
+            message: 'Username/Password Invalid',
+            errors: error.flatten().fieldErrors
         })
     }
     // Step.3 - Find Username in Database 
@@ -132,8 +169,10 @@ router.post('/signin', async (req, res) => {
 })
 
 const updateBody = z.object({
-    email: z.string().email().toLowerCase(),
-    password: z.string().min(8, { message: "Password must be at least 8 characters long" })
+    email: z.string({
+        required_error: "Email is required"
+    }).trim({ message: `space '_' is not allowed` }).email({ message: "Please enter a valid email address (e.g., name@gmail.com)." }).toLowerCase({ message: 'E-mail must be into lowercase' }),
+    password: z.string().trim({ message: `space '_' is not allowed` }).min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
         .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
         .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
@@ -144,10 +183,11 @@ const updateBody = z.object({
 })
 
 router.post('/update', authMiddleware, async (req, res) => {
-    const { success } = updateBody.safeParse(req.body)
+    const { success, error } = updateBody.safeParse(req.body)
     if (!success) {
         res.status(411).json({
-            message: "Error while updating information"
+            message: "Error while updating information",
+            errors: error.flatten().fieldErrors
         })
     }
     await User.updateOne({ _id: req.userId }, req.body)
@@ -189,14 +229,27 @@ router.get('/bulk', async (req, res) => {
 const forgetSchema = z.object({
     params: z.object({
         username: z.union([
-            z.string().min(3, { message: "Usename must be at least 3 characters long" })
-                .max(20, { message: "Usename must be less than 12 characters long" }).toLowerCase(),
-            z.string().email().toLowerCase(),
-        ])
+            z.string({
+                required_error: "Username or E-mail is required",
+            }).min(3, { message: "Usename must be at least 3 characters long" }).trim({ message: `space '_' is not allowed` })
+                .max(20, { message: "Usename must be less than 20 characters long" }).toLowerCase({ message: 'Username must be into lowercase' }),
+            z.string({
+                required_error: "Username or E-mail is required",
+            }).trim({ message: `space '_' is not allowed` }).email({ message: "Invalid email format." }).toLowerCase({ message: 'E-mail must be into lowercase' }),
+        ], {
+            // Agar dono mein se kuch bhi match nahi hua, toh yeh main message aayega
+            errorMap: () => ({ message: "Please enter a valid Username or Email." })
+        })
     }),
     body: z.object({
-        oldPassword: z.string(),
-        newPassword: z.string().min(8, { message: "Password must be at least 8 characters long" })
+        oldPassword: z.string({
+            required_error: "Last password is required",       // Agar field khali chhod di
+            invalid_type_error: "Invalid password please fill the correct password" // Agar number bhej diya
+        }),
+        newPassword: z.string({
+            required_error: "New password must be diffrent",       // Agar field khali chhod di
+            invalid_type_error: "Invalid password please fill the correct password" // Agar number bhej diya
+        }).trim({ message: `space '_' is not allowed` }).min(8, { message: "Password must be at least 8 characters long" })
             .max(20, { message: "Password must be less than 20 characters long" })
             .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
             .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
