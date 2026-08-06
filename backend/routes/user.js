@@ -8,10 +8,39 @@ const router = express.Router()
 
 // Step.1 - Define Zod Security
 const signupSchema = z.object({
-    email: z.string({ required_error: "E-mail is required" }).trim().email("Invalid email format (e.g., example@gmail.com).").toLowerCase(),
-    username: z.string({ required_error: "Username is required" }).trim().min(3, { message: "Usename must be at least 3 characters long" })
-        .max(20, { message: "Usename must be less than 20 characters long" })
-        .regex(/^[a-z0-9_]+$/, { message: "Username can only contain lowercase, numbers, and underscores." }),
+    email: z.string().trim().superRefine((val, ctx) => {
+        // 1. Agar input mein '@' hai -> Strict EMAIL Validation
+        if (val.includes('@')) {
+            const isEmail = z.string().email().safeParse(val);
+            if (!isEmail.success) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Invalid email format (e.g., example@gmail.com).",
+                });
+            }
+        }
+    }),
+    username: z.string().trim().superRefine((val, ctx) => {
+        if (val.length < 3) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Username must be at least 3 characters long.",
+            });
+        }
+        else if (val.length > 20) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Username must be less than 20 characters long.",
+            });
+        }
+        // Regex: Username mein sirf alphabets, numbers, aur underscores (_) allowed hain
+        else if (!/^[a-z0-9_]+$/.test(val)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Username can only contain lowercase, numbers, and underscores.",
+            });
+        }
+    }),
     password: z.string({ required_error: "Password is required" }).trim()
         .min(8, { message: "Password must be at least 8 characters long" })
         .max(20, { message: "Password must be less than 20 characters long" })
